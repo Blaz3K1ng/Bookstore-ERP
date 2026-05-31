@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+vendor/
+frontend/node_modules/
+frontend/dist/
+
+# Laravel
+.env
+.env.*
+!.env.example
+storage/*.key
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.log
+.phpunit.result.cache
+
+# Service directories (scaffolded by setup.sh)
+api-gateway/
+auth-service/
+inventory-service/
+order-service/
+customer-service/
+finance-service/
+
+# Legacy flat source files (migrated to service-files/)
+/mnt/

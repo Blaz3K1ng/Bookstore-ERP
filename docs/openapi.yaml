@@ -1,0 +1,337 @@
+openapi: 3.0.3
+info:
+  title: PageCraft Books Mini ERP API
+  description: |
+    Microservices API Gateway for PageCraft Books online bookstore ERP.
+    All routes are prefixed with `/api/v1` unless noted.
+  version: 1.0.0
+  contact:
+    name: PageCraft Books
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local Docker Compose
+  - url: https://YOUR_PUBLIC_URL/api/v1
+    description: Production (replace after cloud deployment)
+
+tags:
+  - name: Auth
+  - name: Inventory
+  - name: Orders
+  - name: Customers
+  - name: Finance
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+    RegisterRequest:
+      type: object
+      required: [name, email, password, password_confirmation]
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        password: { type: string }
+        password_confirmation: { type: string }
+        role:
+          type: string
+          enum: [admin, warehouse_manager, sales_agent, customer]
+    OrderCreate:
+      type: object
+      required: [customer_id, customer_name, shipping_address, payment_method, items]
+      properties:
+        customer_id: { type: integer }
+        customer_name: { type: string }
+        shipping_address: { type: string }
+        payment_method:
+          type: string
+          enum: [cash, credit_card, gcash, paymaya, cod]
+        notes: { type: string }
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [book_id, quantity]
+            properties:
+              book_id: { type: integer }
+              quantity: { type: integer, minimum: 1 }
+    Book:
+      type: object
+      properties:
+        id: { type: integer }
+        isbn: { type: string }
+        title: { type: string }
+        author: { type: string }
+        genre: { type: string }
+        price: { type: number }
+        stock_qty: { type: integer }
+        reorder_level: { type: integer }
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201': { description: User created with JWT }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and receive JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200': { description: JWT token and user profile }
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      security: [{ bearerAuth: [] }]
+      summary: Current authenticated user
+      responses:
+        '200': { description: User profile }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      security: [{ bearerAuth: [] }]
+      summary: Invalidate JWT
+      responses:
+        '200': { description: Logged out }
+
+  /books:
+    get:
+      tags: [Inventory]
+      security: [{ bearerAuth: [] }]
+      summary: List books (paginated)
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: genre
+          in: query
+          schema: { type: string }
+        - name: low_stock
+          in: query
+          schema: { type: boolean }
+      responses:
+        '200': { description: Paginated book list }
+    post:
+      tags: [Inventory]
+      security: [{ bearerAuth: [] }]
+      summary: Create book
+      responses:
+        '201': { description: Book created }
+
+  /books/{id}:
+    get:
+      tags: [Inventory]
+      security: [{ bearerAuth: [] }]
+      summary: Get book by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Book details }
+    put:
+      tags: [Inventory]
+      security: [{ bearerAuth: [] }]
+      summary: Update book
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Updated book }
+    delete:
+      tags: [Inventory]
+      security: [{ bearerAuth: [] }]
+      summary: Soft delete book
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Deleted }
+
+  /stock/alerts:
+    get:
+      tags: [Inventory]
+      security: [{ bearerAuth: [] }]
+      summary: Books at or below reorder level
+      responses:
+        '200': { description: Low stock list }
+
+  /orders:
+    get:
+      tags: [Orders]
+      security: [{ bearerAuth: [] }]
+      summary: List orders
+      responses:
+        '200': { description: Paginated orders }
+    post:
+      tags: [Orders]
+      security: [{ bearerAuth: [] }]
+      summary: Place order (checks stock, publishes RabbitMQ event)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrderCreate' }
+      responses:
+        '201': { description: Order created }
+        '409': { description: Insufficient stock }
+
+  /orders/{id}:
+    get:
+      tags: [Orders]
+      security: [{ bearerAuth: [] }]
+      summary: Order details with line items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Order }
+    delete:
+      tags: [Orders]
+      security: [{ bearerAuth: [] }]
+      summary: Cancel order and restore stock
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Cancelled }
+
+  /orders/{id}/status:
+    patch:
+      tags: [Orders]
+      security: [{ bearerAuth: [] }]
+      summary: Update order status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, processing, shipped, delivered, cancelled]
+      responses:
+        '200': { description: Updated order }
+
+  /customers:
+    get:
+      tags: [Customers]
+      security: [{ bearerAuth: [] }]
+      summary: List customers
+      responses:
+        '200': { description: Paginated customers }
+    post:
+      tags: [Customers]
+      security: [{ bearerAuth: [] }]
+      summary: Create customer
+      responses:
+        '201': { description: Customer created }
+
+  /customers/{id}:
+    get:
+      tags: [Customers]
+      security: [{ bearerAuth: [] }]
+      summary: Customer profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Customer }
+    put:
+      tags: [Customers]
+      security: [{ bearerAuth: [] }]
+      summary: Update customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Updated }
+
+  /invoices:
+    get:
+      tags: [Finance]
+      security: [{ bearerAuth: [] }]
+      summary: List invoices
+      responses:
+        '200': { description: Paginated invoices }
+
+  /invoices/{id}/status:
+    patch:
+      tags: [Finance]
+      security: [{ bearerAuth: [] }]
+      summary: Mark invoice paid or voided
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, paid, voided]
+      responses:
+        '200': { description: Updated invoice }
+
+  /reports/revenue:
+    get:
+      tags: [Finance]
+      security: [{ bearerAuth: [] }]
+      summary: Revenue summary
+      responses:
+        '200': { description: Total revenue and invoice counts }
+
+  /reports/revenue/monthly:
+    get:
+      tags: [Finance]
+      security: [{ bearerAuth: [] }]
+      summary: Monthly revenue breakdown
+      responses:
+        '200': { description: Monthly aggregates }

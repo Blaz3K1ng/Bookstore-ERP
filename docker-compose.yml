@@ -2,18 +2,17 @@ version: '3.8'
 
 services:
 
-  # ─── API Gateway (port 8000) ─────────────────────────────────────
   api-gateway:
     build: ./api-gateway
     ports:
-      - "8000:8000"
+      - "8080:8000"
     environment:
-      AUTH_SERVICE_URL:      http://auth-service:8000
+      AUTH_SERVICE_URL: http://auth-service:8000
       INVENTORY_SERVICE_URL: http://inventory-service:8000
-      ORDER_SERVICE_URL:     http://order-service:8000
-      CUSTOMER_SERVICE_URL:  http://customer-service:8000
-      FINANCE_SERVICE_URL:   http://finance-service:8000
-      APP_KEY: base64:REPLACE_WITH_GATEWAY_KEY
+      ORDER_SERVICE_URL: http://order-service:8000
+      CUSTOMER_SERVICE_URL: http://customer-service:8000
+      FINANCE_SERVICE_URL: http://finance-service:8000
+      APP_KEY: base64:YWRtaW5nYXRld2F5a2V5Zm9yZGV2ZWxvcG1lbnQ=
     depends_on:
       - auth-service
       - inventory-service
@@ -24,17 +23,17 @@ services:
       - bookstore-net
     restart: unless-stopped
 
-  # ─── Auth Service ────────────────────────────────────────────────
   auth-service:
     build: ./auth-service
     environment:
-      APP_KEY:      base64:REPLACE_WITH_AUTH_KEY
-      DB_HOST:      mysql-auth
-      DB_PORT:      3306
-      DB_DATABASE:  auth_db
-      DB_USERNAME:  bookstore
-      DB_PASSWORD:  secret
-      JWT_SECRET:   REPLACE_WITH_STRONG_JWT_SECRET_64CHARS
+      APP_KEY: base64:YXV0aHNlcnZpY2VrZXlmb3JkZXZlbG9wbWVudG9vbHM=
+      DB_HOST: mysql-auth
+      DB_PORT: 3306
+      DB_DATABASE: auth_db
+      DB_USERNAME: bookstore
+      DB_PASSWORD: secret
+      JWT_SECRET: pagecraft-jwt-secret-change-in-production-64chars!!
+      SEED_DATABASE: "true"
     depends_on:
       mysql-auth:
         condition: service_healthy
@@ -45,9 +44,9 @@ services:
   mysql-auth:
     image: mysql:8.0
     environment:
-      MYSQL_DATABASE:      auth_db
-      MYSQL_USER:          bookstore
-      MYSQL_PASSWORD:      secret
+      MYSQL_DATABASE: auth_db
+      MYSQL_USER: bookstore
+      MYSQL_PASSWORD: secret
       MYSQL_ROOT_PASSWORD: rootsecret
     volumes:
       - mysql_auth_data:/var/lib/mysql
@@ -58,19 +57,22 @@ services:
       interval: 10s
       retries: 5
 
-  # ─── Inventory Service ───────────────────────────────────────────
   inventory-service:
     build: ./inventory-service
     environment:
-      APP_KEY:          base64:REPLACE_WITH_INVENTORY_KEY
-      DB_HOST:          mysql-inventory
-      DB_DATABASE:      inventory_db
-      DB_USERNAME:      bookstore
-      DB_PASSWORD:      secret
+      APP_KEY: base64:aW52ZW50b3J5c2VydmljZWtleWZvcmRldmVsb3BtZW50
+      DB_HOST: mysql-inventory
+      DB_DATABASE: inventory_db
+      DB_USERNAME: bookstore
+      DB_PASSWORD: secret
       AUTH_SERVICE_URL: http://auth-service:8000
+      INTERNAL_SERVICE_TOKEN: pagecraft-internal-dev-token
+      SEED_DATABASE: "true"
     depends_on:
       mysql-inventory:
         condition: service_healthy
+      auth-service:
+        condition: service_started
     networks:
       - bookstore-net
     restart: unless-stopped
@@ -78,9 +80,9 @@ services:
   mysql-inventory:
     image: mysql:8.0
     environment:
-      MYSQL_DATABASE:      inventory_db
-      MYSQL_USER:          bookstore
-      MYSQL_PASSWORD:      secret
+      MYSQL_DATABASE: inventory_db
+      MYSQL_USER: bookstore
+      MYSQL_PASSWORD: secret
       MYSQL_ROOT_PASSWORD: rootsecret
     volumes:
       - mysql_inventory_data:/var/lib/mysql
@@ -91,42 +93,32 @@ services:
       interval: 10s
       retries: 5
 
-  # ─── Order Service ───────────────────────────────────────────────
   order-service:
     build: ./order-service
     environment:
-      APP_KEY:              base64:REPLACE_WITH_ORDER_KEY
-      DB_HOST:              mysql-orders
-      DB_DATABASE:          orders_db
-      DB_USERNAME:          bookstore
-      DB_PASSWORD:          secret
-      AUTH_SERVICE_URL:     http://auth-service:8000
+      APP_KEY: base64:b3JkZXJzZXJ2aWNla2V5Zm9yZGV2ZWxvcG1lbnRvb2xz
+      DB_HOST: mysql-orders
+      DB_DATABASE: orders_db
+      DB_USERNAME: bookstore
+      DB_PASSWORD: secret
+      AUTH_SERVICE_URL: http://auth-service:8000
       INVENTORY_SERVICE_URL: http://inventory-service:8000
-      RABBITMQ_HOST:        rabbitmq
-      RABBITMQ_PORT:        5672
-      RABBITMQ_USER:        guest
-      RABBITMQ_PASSWORD:    guest
-      RABBITMQ_QUEUE:       order.created
+      CUSTOMER_SERVICE_URL: http://customer-service:8000
+      INTERNAL_SERVICE_TOKEN: pagecraft-internal-dev-token
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_QUEUE: order.created
     depends_on:
       mysql-orders:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    networks:
-      - bookstore-net
-    restart: unless-stopped
-
-  # Worker: consumes failed queue jobs
-  order-worker:
-    build: ./order-service
-    command: php artisan queue:work --sleep=3 --tries=3
-    environment:
-      DB_HOST:     mysql-orders
-      DB_DATABASE: orders_db
-      DB_USERNAME: bookstore
-      DB_PASSWORD: secret
-    depends_on:
-      - mysql-orders
+      inventory-service:
+        condition: service_started
+      customer-service:
+        condition: service_started
     networks:
       - bookstore-net
     restart: unless-stopped
@@ -134,9 +126,9 @@ services:
   mysql-orders:
     image: mysql:8.0
     environment:
-      MYSQL_DATABASE:      orders_db
-      MYSQL_USER:          bookstore
-      MYSQL_PASSWORD:      secret
+      MYSQL_DATABASE: orders_db
+      MYSQL_USER: bookstore
+      MYSQL_PASSWORD: secret
       MYSQL_ROOT_PASSWORD: rootsecret
     volumes:
       - mysql_orders_data:/var/lib/mysql
@@ -147,19 +139,22 @@ services:
       interval: 10s
       retries: 5
 
-  # ─── Customer Service ────────────────────────────────────────────
   customer-service:
     build: ./customer-service
     environment:
-      APP_KEY:          base64:REPLACE_WITH_CUSTOMER_KEY
-      DB_HOST:          mysql-customers
-      DB_DATABASE:      customers_db
-      DB_USERNAME:      bookstore
-      DB_PASSWORD:      secret
+      APP_KEY: base64:Y3VzdG9tZXJzZXJ2aWNla2V5Zm9yZGV2ZWxvcG1lbnQ=
+      DB_HOST: mysql-customers
+      DB_DATABASE: customers_db
+      DB_USERNAME: bookstore
+      DB_PASSWORD: secret
       AUTH_SERVICE_URL: http://auth-service:8000
+      INTERNAL_SERVICE_TOKEN: pagecraft-internal-dev-token
+      SEED_DATABASE: "true"
     depends_on:
       mysql-customers:
         condition: service_healthy
+      auth-service:
+        condition: service_started
     networks:
       - bookstore-net
     restart: unless-stopped
@@ -167,9 +162,9 @@ services:
   mysql-customers:
     image: mysql:8.0
     environment:
-      MYSQL_DATABASE:      customers_db
-      MYSQL_USER:          bookstore
-      MYSQL_PASSWORD:      secret
+      MYSQL_DATABASE: customers_db
+      MYSQL_USER: bookstore
+      MYSQL_PASSWORD: secret
       MYSQL_ROOT_PASSWORD: rootsecret
     volumes:
       - mysql_customers_data:/var/lib/mysql
@@ -180,21 +175,21 @@ services:
       interval: 10s
       retries: 5
 
-  # ─── Finance Service ─────────────────────────────────────────────
   finance-service:
     build: ./finance-service
     environment:
-      APP_KEY:          base64:REPLACE_WITH_FINANCE_KEY
-      DB_HOST:          mysql-finance
-      DB_DATABASE:      finance_db
-      DB_USERNAME:      bookstore
-      DB_PASSWORD:      secret
+      APP_KEY: base64:ZmluYW5jZXNlcnZpY2VrZXlmb3JkZXZlbG9wbWVudG9vbHM=
+      DB_HOST: mysql-finance
+      DB_DATABASE: finance_db
+      DB_USERNAME: bookstore
+      DB_PASSWORD: secret
       AUTH_SERVICE_URL: http://auth-service:8000
-      RABBITMQ_HOST:    rabbitmq
-      RABBITMQ_PORT:    5672
-      RABBITMQ_USER:    guest
+      INTERNAL_SERVICE_TOKEN: pagecraft-internal-dev-token
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
-      RABBITMQ_QUEUE:   order.created
+      RABBITMQ_QUEUE: order.created
     depends_on:
       mysql-finance:
         condition: service_healthy
@@ -204,23 +199,24 @@ services:
       - bookstore-net
     restart: unless-stopped
 
-  # Finance RabbitMQ Consumer
   finance-consumer:
     build: ./finance-service
     command: php artisan consume:orders
     environment:
-      DB_HOST:           mysql-finance
-      DB_DATABASE:       finance_db
-      DB_USERNAME:       bookstore
-      DB_PASSWORD:       secret
-      RABBITMQ_HOST:     rabbitmq
-      RABBITMQ_PORT:     5672
-      RABBITMQ_USER:     guest
+      APP_KEY: base64:ZmluYW5jZXNlcnZpY2VrZXlmb3JkZXZlbG9wbWVudG9vbHM=
+      DB_HOST: mysql-finance
+      DB_DATABASE: finance_db
+      DB_USERNAME: bookstore
+      DB_PASSWORD: secret
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
-      RABBITMQ_QUEUE:    order.created
+      RABBITMQ_QUEUE: order.created
     depends_on:
       - mysql-finance
       - rabbitmq
+      - finance-service
     networks:
       - bookstore-net
     restart: unless-stopped
@@ -228,9 +224,9 @@ services:
   mysql-finance:
     image: mysql:8.0
     environment:
-      MYSQL_DATABASE:      finance_db
-      MYSQL_USER:          bookstore
-      MYSQL_PASSWORD:      secret
+      MYSQL_DATABASE: finance_db
+      MYSQL_USER: bookstore
+      MYSQL_PASSWORD: secret
       MYSQL_ROOT_PASSWORD: rootsecret
     volumes:
       - mysql_finance_data:/var/lib/mysql
@@ -241,12 +237,11 @@ services:
       interval: 10s
       retries: 5
 
-  # ─── RabbitMQ (Message Broker) ───────────────────────────────────
   rabbitmq:
     image: rabbitmq:3-management
     ports:
       - "5672:5672"
-      - "15672:15672"   # Management UI: http://localhost:15672 (guest/guest)
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -259,12 +254,20 @@ services:
       interval: 15s
       retries: 5
 
-# ─── Shared Network ──────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - bookstore-net
+    restart: unless-stopped
+
 networks:
   bookstore-net:
     driver: bridge
 
-# ─── Volumes ─────────────────────────────────────────────────────
 volumes:
   mysql_auth_data:
   mysql_inventory_data:
