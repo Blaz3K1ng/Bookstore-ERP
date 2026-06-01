@@ -14,8 +14,8 @@ class HealthController extends Controller
         try {
             DB::connection()->getPdo();
             $dbOk = true;
-        } catch (\Exception) {
-            // database unavailable
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('DB Health Check Failed: ' . $e->getMessage());
         }
 
         $status = $dbOk ? 'healthy' : 'degraded';
@@ -25,7 +25,10 @@ class HealthController extends Controller
             'status'   => $status,
             'database' => $dbOk ? 'connected' : 'disconnected',
             'time'     => now()->toISOString(),
-        ], 200); // Always 200 — service is up; DB status is informational only
+        ], $dbOk ? 200 : 503);
     }
 }
+
+
+
 
