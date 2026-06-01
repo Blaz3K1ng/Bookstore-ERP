@@ -19,7 +19,7 @@ class CheckRole
             ], Response::HTTP_FORBIDDEN);
         }
 
-        if ($user['role'] === 'admin' || $user['role'] === 'service') {
+        if ($user['role'] === 'admin' || $user['role'] === 'super_admin' || $user['role'] === 'service') {
             return $next($request);
         }
 

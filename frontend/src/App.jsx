@@ -48,22 +48,22 @@ export default function App() {
             >
               <Route index element={<Dashboard />} />
               <Route path="books" element={
-                <PrivateRoute allowedRoles={['super_admin', 'inventory_admin', 'catalog_admin']}><Books /></PrivateRoute>
+                <PrivateRoute allowedRoles={['admin', 'super_admin', 'inventory_admin', 'catalog_admin']}><Books /></PrivateRoute>
               } />
               <Route path="orders" element={
-                <PrivateRoute allowedRoles={['super_admin', 'orders_admin']}><Orders /></PrivateRoute>
+                <PrivateRoute allowedRoles={['admin', 'super_admin', 'orders_admin']}><Orders /></PrivateRoute>
               } />
               <Route path="customers" element={
-                <PrivateRoute allowedRoles={['super_admin', 'orders_admin']}><Customers /></PrivateRoute>
+                <PrivateRoute allowedRoles={['admin', 'super_admin', 'orders_admin']}><Customers /></PrivateRoute>
               } />
               <Route path="invoices" element={
-                <PrivateRoute allowedRoles={['super_admin', 'finance_admin']}><Invoices /></PrivateRoute>
+                <PrivateRoute allowedRoles={['admin', 'super_admin', 'finance_admin']}><Invoices /></PrivateRoute>
               } />
               <Route path="suppliers" element={
-                <PrivateRoute allowedRoles={['super_admin', 'inventory_admin']}><Suppliers /></PrivateRoute>
+                <PrivateRoute allowedRoles={['admin', 'super_admin', 'inventory_admin']}><Suppliers /></PrivateRoute>
               } />
               <Route path="reports" element={
-                <PrivateRoute allowedRoles={['super_admin', 'finance_admin']}><Reports /></PrivateRoute>
+                <PrivateRoute allowedRoles={['admin', 'super_admin', 'finance_admin']}><Reports /></PrivateRoute>
               } />
             </Route>
             
