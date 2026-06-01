@@ -15,8 +15,9 @@ Route::prefix('v1')->middleware(VerifyServiceAuth::class)->group(function () {
 
 Route::prefix('v1')->middleware(VerifyJwtToken::class)->group(function () {
     Route::get('customers/{id}/orders-summary', [CustomerController::class, 'ordersSummary'])
-         ->middleware('role:admin,sales_agent');
+         ->middleware('role:admin,super_admin,orders_admin');
 
     Route::apiResource('customers', CustomerController::class)
-         ->middleware('role:admin,sales_agent');
+         ->middleware('role:admin,super_admin,orders_admin');
 });
+

@@ -25,10 +25,11 @@ Route::prefix('v1')->group(function () {
 // Protected User-facing endpoints
 Route::prefix('v1')->middleware(VerifyJwtToken::class)->group(function () {
     Route::get('stock/alerts', [BookController::class, 'lowStockAlerts'])
-         ->middleware('role:admin,warehouse_manager,sales_agent');
+         ->middleware('role:admin,super_admin,inventory_admin,catalog_admin,orders_admin,finance_admin');
 
-    Route::post('books', [BookController::class, 'store'])->middleware('role:admin,warehouse_manager');
-    Route::put('books/{book}', [BookController::class, 'update'])->middleware('role:admin,warehouse_manager');
-    Route::patch('books/{book}', [BookController::class, 'update'])->middleware('role:admin,warehouse_manager');
-    Route::delete('books/{book}', [BookController::class, 'destroy'])->middleware('role:admin');
+    Route::post('books', [BookController::class, 'store'])->middleware('role:admin,super_admin,inventory_admin,catalog_admin');
+    Route::put('books/{book}', [BookController::class, 'update'])->middleware('role:admin,super_admin,inventory_admin,catalog_admin');
+    Route::patch('books/{book}', [BookController::class, 'update'])->middleware('role:admin,super_admin,inventory_admin,catalog_admin');
+    Route::delete('books/{book}', [BookController::class, 'destroy'])->middleware('role:admin,super_admin,inventory_admin');
 });
+

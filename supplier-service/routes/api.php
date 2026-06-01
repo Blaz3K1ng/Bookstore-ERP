@@ -9,25 +9,25 @@ use Illuminate\Support\Facades\Route;
 Route::get('health', HealthController::class);
 
 Route::prefix('v1')->middleware(VerifyJwtToken::class)->group(function () {
-    // Supplier management (admin + warehouse_manager)
+    // Supplier management (admin + inventory_admin)
     Route::get('suppliers',        [SupplierController::class, 'index'])
-         ->middleware('role:admin,warehouse_manager');
+         ->middleware('role:admin,super_admin,inventory_admin');
     Route::post('suppliers',       [SupplierController::class, 'store'])
-         ->middleware('role:admin');
+         ->middleware('role:admin,super_admin,inventory_admin');
     Route::get('suppliers/{id}',   [SupplierController::class, 'show'])
-         ->middleware('role:admin,warehouse_manager');
+         ->middleware('role:admin,super_admin,inventory_admin');
     Route::patch('suppliers/{id}', [SupplierController::class, 'update'])
-         ->middleware('role:admin');
+         ->middleware('role:admin,super_admin,inventory_admin');
     Route::delete('suppliers/{id}',[SupplierController::class, 'destroy'])
-         ->middleware('role:admin');
+         ->middleware('role:admin,super_admin,inventory_admin');
 
-    // Purchase orders (admin + warehouse_manager)
-    Route::get('purchase-orders',           [PurchaseOrderController::class, 'index'])
-         ->middleware('role:admin,warehouse_manager');
-    Route::post('purchase-orders',          [PurchaseOrderController::class, 'store'])
-         ->middleware('role:admin,warehouse_manager');
-    Route::get('purchase-orders/{id}',      [PurchaseOrderController::class, 'show'])
-         ->middleware('role:admin,warehouse_manager');
+    // Purchase orders (admin + inventory_admin)
+    Route::get('purchase-orders',               [PurchaseOrderController::class, 'index'])
+         ->middleware('role:admin,super_admin,inventory_admin');
+    Route::post('purchase-orders',              [PurchaseOrderController::class, 'store'])
+         ->middleware('role:admin,super_admin,inventory_admin');
+    Route::get('purchase-orders/{id}',          [PurchaseOrderController::class, 'show'])
+         ->middleware('role:admin,super_admin,inventory_admin');
     Route::patch('purchase-orders/{id}/status', [PurchaseOrderController::class, 'updateStatus'])
-         ->middleware('role:admin,warehouse_manager');
+         ->middleware('role:admin,super_admin,inventory_admin');
 });
