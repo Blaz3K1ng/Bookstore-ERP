@@ -42,43 +42,14 @@ sync_env() {
 for var in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD DATABASE_URL \
            JWT_SECRET JWT_TTL \
            AUTH_SERVICE_URL INVENTORY_SERVICE_URL ORDER_SERVICE_URL \
-           CUSTOMER_SERVICE_URL FINANCE_SERVICE_URL \
+           CUSTOMER_SERVICE_URL FINANCE_SERVICE_URL SUPPLIER_SERVICE_URL REPORTING_SERVICE_URL \
            INTERNAL_SERVICE_TOKEN \
-           RABBITMQ_HOST RABBITMQ_PORT RABBITMQ_USER RABBITMQ_PASSWORD RABBITMQ_QUEUE \
+           RABBITMQ_HOST RABBITMQ_PORT RABBITMQ_USER RABBITMQ_PASSWORD RABBITMQ_QUEUE NOTIFICATION_QUEUE \
            APP_KEY APP_ENV APP_DEBUG LOG_CHANNEL; do
     sync_env "$var"
 done
 
-if \! grep -Eq '\^APP_KEY=base64:[A-Za-z0-9+/=]{44}\
-
-if [ -n "$DB_HOST" ] || [ -n "$DATABASE_URL" ]; then
-    echo "→ Waiting for database..."
-    sleep 5
-
-    echo "→ Running migrations..."
-    php artisan migrate --force -v
-
-    if [ "$SEED_DATABASE" = "true" ]; then
-        echo "→ Seeding database..."
-        php artisan db:seed --force || true
-    fi
-else
-    echo "→ No database configured — skipping migrations."
-fi
-
-echo "→ Clearing caches..."
-php artisan config:clear
-php artisan route:clear
-php artisan cache:clear 2>/dev/null || true
-
-echo "→ Starting service..."
-exec "$@"
-
-
-
-
-
- .env; then
+if ! grep -Eq '^APP_KEY=base64:[A-Za-z0-9+/=]{44}$' .env; then
     echo "→ Generating valid APP_KEY (provided key is missing or invalid length)..."
     php artisan key:generate --force
 fi
@@ -105,7 +76,6 @@ php artisan cache:clear 2>/dev/null || true
 
 echo "→ Starting service..."
 exec "$@"
-
 
 
 
