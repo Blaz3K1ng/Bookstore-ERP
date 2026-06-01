@@ -205,36 +205,6 @@ services:
       - key: RABBITMQ_QUEUE
         value: order.created
 
-  # ── Finance Consumer (RabbitMQ worker) ───────────────────────────────────────
-  # NOTE: Background workers require a paid Render plan.
-  # On the free plan, skip this and invoices won't auto-generate from orders.
-  - type: worker
-    name: bookstore-finance-consumer
-    runtime: docker
-    dockerfilePath: ./finance-service/Dockerfile.consumer
-    dockerContext: ./finance-service
-    envVars:
-      - key: APP_ENV
-        value: production
-      - key: APP_KEY
-        generateValue: true
-      - key: DB_CONNECTION
-        value: pgsql
-      - key: DATABASE_URL
-        fromDatabase:
-          name: bookstore-finance-db
-          property: connectionString
-      - key: RABBITMQ_HOST
-        sync: false
-      - key: RABBITMQ_PORT
-        value: "5672"
-      - key: RABBITMQ_USER
-        sync: false
-      - key: RABBITMQ_PASSWORD
-        sync: false
-      - key: RABBITMQ_QUEUE
-        value: order.created
-
   # ── Supplier Service ─────────────────────────────────────────────────────────
   - type: web
     name: bookstore-supplier
@@ -288,38 +258,6 @@ services:
         sync: false
       - key: INTERNAL_SERVICE_TOKEN
         sync: false
-
-  # ── Notification Service (Node.js) ───────────────────────────────────────────
-  # NOTE: Background workers require a paid Render plan.
-  # On the free plan, deploy as a web service (add a health endpoint or use PORT).
-  - type: worker
-    name: bookstore-notification
-    runtime: docker
-    dockerfilePath: ./notification-service/Dockerfile
-    dockerContext: ./notification-service
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: RABBITMQ_HOST
-        sync: false
-      - key: RABBITMQ_PORT
-        value: "5672"
-      - key: RABBITMQ_USER
-        sync: false
-      - key: RABBITMQ_PASSWORD
-        sync: false
-      - key: NOTIFICATION_QUEUE
-        value: order.notifications
-      - key: SMTP_HOST
-        sync: false  # Optional — leave blank to disable email
-      - key: SMTP_PORT
-        value: "587"
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASS
-        sync: false
-      - key: MAIL_FROM
-        value: notifications@pagecraft.ph
 
   # ── API Gateway ──────────────────────────────────────────────────────────────
   - type: web
