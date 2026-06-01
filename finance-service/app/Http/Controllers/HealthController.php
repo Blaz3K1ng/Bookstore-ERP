@@ -28,3 +28,4 @@ class HealthController extends Controller
         ], 200); // Always 200 — service is up; DB status is informational only
     }
 }
+
