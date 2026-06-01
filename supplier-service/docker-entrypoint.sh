@@ -6,6 +6,16 @@ if [ ! -f .env ]; then
     cp .env.example .env 2>/dev/null || touch .env
 fi
 
+# Normalize DATABASE_URL for Neon compatibility (strip channel_binding, normalize scheme)
+if [ -n "$DATABASE_URL" ]; then
+    normalized=$(php -r '$url=getenv("DATABASE_URL"); if(!$url){exit;} $url=preg_replace("#^postgresql://#","postgres://",$url); $parts=parse_url($url); if(!$parts){echo $url; exit;} $query=$parts["query"] ?? ""; parse_str($query,$q); unset($q["channel_binding"]); $newQuery=http_build_query($q); $scheme=$parts["scheme"] ?? ""; $user=$parts["user"] ?? ""; $pass=$parts["pass"] ?? ""; $auth=$user!=="" ? $user . ($pass!=="" ? ":" . $pass : "") . "@" : ""; $host=$parts["host"] ?? ""; $port=isset($parts["port"]) ? ":" . $parts["port"] : ""; $path=$parts["path"] ?? ""; $frag=isset($parts["fragment"]) ? "#" . $parts["fragment"] : ""; echo $scheme . "://" . $auth . $host . $port . $path . ($newQuery!=="" ? "?" . $newQuery : "") . $frag;') || normalized="$DATABASE_URL"
+    if [ -n "$normalized" ] && [ "$normalized" != "$DATABASE_URL" ]; then
+        echo "→ Normalized DATABASE_URL for compatibility."
+    fi
+    DATABASE_URL="$normalized"
+    export DATABASE_URL
+fi
+
 # Auto-detect DB_CONNECTION from DATABASE_URL scheme (Render provides postgres://)
 if [ -z "$DB_CONNECTION" ] && [ -n "$DATABASE_URL" ]; then
     case "$DATABASE_URL" in
@@ -38,12 +48,19 @@ for var in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD DAT
     sync_env "$var"
 done
 
+# Fail fast if APP_KEY is missing (Laravel will crash anyway; make it obvious in logs)
+app_key=$(grep '^APP_KEY=' .env 2>/dev/null | head -n 1 | cut -d= -f2-)
+if [ -z "$app_key" ]; then
+    echo "ERROR: APP_KEY is not set. Add APP_KEY to the service environment variables."
+    exit 1
+fi
+
 if [ -n "$DB_HOST" ] || [ -n "$DATABASE_URL" ]; then
     echo "→ Waiting for database..."
     sleep 5
 
     echo "→ Running migrations..."
-    php artisan migrate --force
+    php artisan migrate --force -v
 
     if [ "$SEED_DATABASE" = "true" ]; then
         echo "→ Seeding database..."
