@@ -428,7 +428,7 @@ body {
   background: rgba(0, 0, 0, 0.6);
   display: grid;
   place-items: center;
-  z-index: 50;
+  z-index: 200;
 }
 .modal {
   background: var(--surface);
