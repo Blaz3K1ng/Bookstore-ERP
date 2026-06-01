@@ -36,6 +36,7 @@ export const api = {
   getStockAlerts: () => request('/stock/alerts'),
 
   getOrders: (params = '') => request(`/orders${params ? '?' + params : ''}`),
+  getCustomerOrders: (customerId) => request(`/orders/customer/${customerId}`),
   createOrder: (payload) =>
     request('/orders', { method: 'POST', body: JSON.stringify(payload) }),
   updateOrderStatus: (id, status) =>

@@ -4,6 +4,7 @@ import { CartProvider } from './context/CartContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import CustomerProfile from './pages/CustomerProfile';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Books from './pages/Books';
@@ -31,6 +32,7 @@ export default function App() {
             
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/profile" element={<CustomerProfile />} />
             
             {/* Private ERP Application */}
             <Route

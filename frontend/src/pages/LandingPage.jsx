@@ -82,7 +82,13 @@ export default function LandingPage() {
               🛒 Cart
               {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
             </button>
-            <Link to="/login" className="btn-ghost" style={{width: 'auto'}}>Admin Login</Link>
+            {user ? (
+              user.role === 'customer' 
+                ? <Link to="/profile" className="btn-ghost" style={{width: 'auto'}}>My Profile</Link>
+                : <Link to="/dashboard" className="btn-ghost" style={{width: 'auto'}}>ERP Dashboard</Link>
+            ) : (
+              <Link to="/login" className="btn-ghost" style={{width: 'auto'}}>Login</Link>
+            )}
           </div>
         </div>
       </nav>
