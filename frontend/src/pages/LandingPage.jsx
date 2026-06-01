@@ -11,6 +11,7 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState('All');
   const { addToCart, isCartOpen, setIsCartOpen, cart, updateQuantity, removeFromCart, clearCart, cartTotal, cartCount } = useCart();
 
   useEffect(() => {
@@ -56,9 +57,15 @@ export default function LandingPage() {
     }
   };
 
+  const genres = ['All', ...new Set(books.map(b => b.genre).filter(Boolean))];
+
+  const filteredBooks = selectedGenre === 'All' 
+    ? books 
+    : books.filter(b => b.genre === selectedGenre);
+
   // Group books by genre for "Featured" and "New Arrivals" illusion
-  const featuredBooks = books.slice(0, 4);
-  const otherBooks = books.slice(4);
+  const featuredBooks = filteredBooks.slice(0, 4);
+  const otherBooks = filteredBooks.slice(4);
 
   return (
     <div className="storefront">
@@ -110,6 +117,19 @@ export default function LandingPage() {
           <div className="loading-screen">Loading books...</div>
         ) : (
           <>
+            {/* Genre Filter */}
+            <div className="genre-filter">
+              {genres.map(g => (
+                <button 
+                  key={g} 
+                  className={`genre-pill ${selectedGenre === g ? 'active' : ''}`}
+                  onClick={() => setSelectedGenre(g)}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+
             {/* Featured Books Section */}
             {featuredBooks.length > 0 && (
               <section className="book-section">
