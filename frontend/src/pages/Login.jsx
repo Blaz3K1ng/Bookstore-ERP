@@ -4,8 +4,8 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const { user, login } = useAuth();
-  const [email, setEmail] = useState('admin@pagecraft.ph');
-  const [password, setPassword] = useState('secret123');
+  const [email, setEmail] = useState('admin@pageturn.com');
+  const [password, setPassword] = useState('password123');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -49,7 +49,13 @@ export default function Login() {
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
-        <p className="login-hint">Demo: admin@pagecraft.ph / secret123</p>
+        <p className="login-hint" style={{ fontSize: '0.8rem', marginTop: '1rem', color: '#64748b' }}>
+          <b>Demo Accounts (password123):</b><br/>
+          admin@pageturn.com (Super Admin)<br/>
+          finance@pageturn.com (Finance Admin)<br/>
+          inventory@pageturn.com (Inventory Admin)<br/>
+          customer@example.com (Customer)
+        </p>
       </div>
     </div>
   );

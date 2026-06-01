@@ -14,10 +14,13 @@ import Invoices from './pages/Invoices';
 import Suppliers from './pages/Suppliers';
 import Reports from './pages/Reports';
 
-function PrivateRoute({ children }) {
+function PrivateRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="loading-screen">Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
   return children;
 }
 
@@ -44,12 +47,24 @@ export default function App() {
               }
             >
               <Route index element={<Dashboard />} />
-              <Route path="books" element={<Books />} />
-              <Route path="orders" element={<Orders />} />
-              <Route path="customers" element={<Customers />} />
-              <Route path="invoices" element={<Invoices />} />
-              <Route path="suppliers" element={<Suppliers />} />
-              <Route path="reports" element={<Reports />} />
+              <Route path="books" element={
+                <PrivateRoute allowedRoles={['super_admin', 'inventory_admin', 'catalog_admin']}><Books /></PrivateRoute>
+              } />
+              <Route path="orders" element={
+                <PrivateRoute allowedRoles={['super_admin', 'orders_admin']}><Orders /></PrivateRoute>
+              } />
+              <Route path="customers" element={
+                <PrivateRoute allowedRoles={['super_admin', 'orders_admin']}><Customers /></PrivateRoute>
+              } />
+              <Route path="invoices" element={
+                <PrivateRoute allowedRoles={['super_admin', 'finance_admin']}><Invoices /></PrivateRoute>
+              } />
+              <Route path="suppliers" element={
+                <PrivateRoute allowedRoles={['super_admin', 'inventory_admin']}><Suppliers /></PrivateRoute>
+              } />
+              <Route path="reports" element={
+                <PrivateRoute allowedRoles={['super_admin', 'finance_admin']}><Reports /></PrivateRoute>
+              } />
             </Route>
             
             {/* Fallback redirect */}

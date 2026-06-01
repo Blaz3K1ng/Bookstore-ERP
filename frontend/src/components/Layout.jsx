@@ -2,17 +2,21 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const nav = [
-  { to: '/dashboard', label: 'Dashboard', icon: '◫' },
-  { to: '/dashboard/books', label: 'Inventory', icon: '📚' },
-  { to: '/dashboard/orders', label: 'Orders', icon: '🛒' },
-  { to: '/dashboard/customers', label: 'Customers', icon: '👥' },
-  { to: '/dashboard/invoices', label: 'Finance', icon: '💰' },
-  { to: '/dashboard/suppliers', label: 'Suppliers', icon: '🏭' },
-  { to: '/dashboard/reports', label: 'Reports', icon: '📊' },
+  { to: '/dashboard', label: 'Dashboard', icon: '◫', roles: ['super_admin', 'finance_admin', 'inventory_admin', 'catalog_admin', 'orders_admin', 'staff'] },
+  { to: '/dashboard/books', label: 'Inventory', icon: '📚', roles: ['super_admin', 'inventory_admin', 'catalog_admin'] },
+  { to: '/dashboard/orders', label: 'Orders', icon: '🛒', roles: ['super_admin', 'orders_admin'] },
+  { to: '/dashboard/customers', label: 'Customers', icon: '👥', roles: ['super_admin', 'orders_admin'] },
+  { to: '/dashboard/invoices', label: 'Finance', icon: '💰', roles: ['super_admin', 'finance_admin'] },
+  { to: '/dashboard/suppliers', label: 'Suppliers', icon: '🏭', roles: ['super_admin', 'inventory_admin'] },
+  { to: '/dashboard/reports', label: 'Reports', icon: '📊', roles: ['super_admin', 'finance_admin'] },
 ];
 
 export default function Layout() {
   const { user, logout } = useAuth();
+
+  const filteredNav = nav.filter(item => 
+    !item.roles || item.roles.includes(user?.role)
+  );
 
   return (
     <div className="app-shell">
@@ -25,7 +29,7 @@ export default function Layout() {
           </div>
         </div>
         <nav>
-          {nav.map((item) => (
+          {filteredNav.map((item) => (
             <NavLink key={item.to} to={item.to} end={item.to === '/dashboard'} className="nav-link">
               <span>{item.icon}</span> {item.label}
             </NavLink>

@@ -11,9 +11,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $users = [
-            ['name' => 'Admin User',       'email' => 'admin@pagecraft.ph',       'role' => 'admin',             'password' => 'secret123'],
-            ['name' => 'Warehouse Lead',   'email' => 'warehouse@pagecraft.ph', 'role' => 'warehouse_manager', 'password' => 'secret123'],
-            ['name' => 'Sales Agent',      'email' => 'sales@pagecraft.ph',     'role' => 'sales_agent',       'password' => 'secret123'],
+            ['name' => 'Super Admin',      'email' => 'admin@pageturn.com',       'role' => 'super_admin',     'password' => 'password123'],
+            ['name' => 'Finance Admin',    'email' => 'finance@pageturn.com',     'role' => 'finance_admin',   'password' => 'password123'],
+            ['name' => 'Inventory Admin',  'email' => 'inventory@pageturn.com',   'role' => 'inventory_admin', 'password' => 'password123'],
+            ['name' => 'Catalog Admin',    'email' => 'catalog@pageturn.com',     'role' => 'catalog_admin',   'password' => 'password123'],
+            ['name' => 'Orders Admin',     'email' => 'orders@pageturn.com',      'role' => 'orders_admin',    'password' => 'password123'],
+            ['name' => 'General Staff',    'email' => 'staff@pageturn.com',       'role' => 'staff',           'password' => 'password123'],
+            ['name' => 'Sample Customer',  'email' => 'customer@example.com',     'role' => 'customer',        'password' => 'password123'],
         ];
 
         foreach ($users as $user) {
