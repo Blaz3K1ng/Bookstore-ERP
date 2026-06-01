@@ -1,4 +1,4 @@
-﻿#!/bin/sh
+#!/bin/sh
 set -e
 
 # Ensure .env exists — on Render/CI the .env file is not committed
