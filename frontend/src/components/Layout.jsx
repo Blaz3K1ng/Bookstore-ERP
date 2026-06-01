@@ -2,13 +2,13 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const nav = [
-  { to: '/', label: 'Dashboard', icon: '◫' },
-  { to: '/books', label: 'Inventory', icon: '📚' },
-  { to: '/orders', label: 'Orders', icon: '🛒' },
-  { to: '/customers', label: 'Customers', icon: '👥' },
-  { to: '/invoices', label: 'Finance', icon: '💰' },
-  { to: '/suppliers', label: 'Suppliers', icon: '🏭' },
-  { to: '/reports', label: 'Reports', icon: '📊' },
+  { to: '/dashboard', label: 'Dashboard', icon: '◫' },
+  { to: '/dashboard/books', label: 'Inventory', icon: '📚' },
+  { to: '/dashboard/orders', label: 'Orders', icon: '🛒' },
+  { to: '/dashboard/customers', label: 'Customers', icon: '👥' },
+  { to: '/dashboard/invoices', label: 'Finance', icon: '💰' },
+  { to: '/dashboard/suppliers', label: 'Suppliers', icon: '🏭' },
+  { to: '/dashboard/reports', label: 'Reports', icon: '📊' },
 ];
 
 export default function Layout() {
@@ -26,7 +26,7 @@ export default function Layout() {
         </div>
         <nav>
           {nav.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.to === '/'} className="nav-link">
+            <NavLink key={item.to} to={item.to} end={item.to === '/dashboard'} className="nav-link">
               <span>{item.icon}</span> {item.label}
             </NavLink>
           ))}

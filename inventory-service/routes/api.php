@@ -16,11 +16,19 @@ Route::prefix('v1')->middleware(VerifyServiceAuth::class)->group(function () {
     Route::patch('books/{id}/stock/restore', [BookController::class, 'restoreStock']);
 });
 
-// User-facing endpoints
+// Public User-facing endpoints
+Route::prefix('v1')->group(function () {
+    Route::get('books', [BookController::class, 'index']);
+    Route::get('books/{book}', [BookController::class, 'show']);
+});
+
+// Protected User-facing endpoints
 Route::prefix('v1')->middleware(VerifyJwtToken::class)->group(function () {
     Route::get('stock/alerts', [BookController::class, 'lowStockAlerts'])
          ->middleware('role:admin,warehouse_manager,sales_agent');
 
-    Route::apiResource('books', BookController::class)
-         ->middleware('role:admin,warehouse_manager,sales_agent,customer');
+    Route::post('books', [BookController::class, 'store'])->middleware('role:admin,warehouse_manager');
+    Route::put('books/{book}', [BookController::class, 'update'])->middleware('role:admin,warehouse_manager');
+    Route::patch('books/{book}', [BookController::class, 'update'])->middleware('role:admin,warehouse_manager');
+    Route::delete('books/{book}', [BookController::class, 'destroy'])->middleware('role:admin');
 });
