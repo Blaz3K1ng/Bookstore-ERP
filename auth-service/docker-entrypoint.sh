@@ -1,4 +1,4 @@
-#!/bin/sh
+﻿#!/bin/sh
 set -e
 
 # Ensure .env exists — on Render/CI the .env file is not committed
@@ -49,10 +49,8 @@ for var in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD DAT
     sync_env "$var"
 done
 
-if ! grep -q '^APP_KEY=base64:' .env; then
-    echo "? Generating valid APP_KEY..."
-    php artisan key:generate --force
-fi
+echo "→ Forcing valid APP_KEY generation..."
+php artisan key:generate --force
 
 if [ -n "$DB_HOST" ] || [ -n "$DATABASE_URL" ]; then
     echo "→ Waiting for database..."
@@ -76,6 +74,8 @@ php artisan cache:clear 2>/dev/null || true
 
 echo "→ Starting service..."
 exec "$@"
+
+
 
 
 
