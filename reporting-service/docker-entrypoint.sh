@@ -49,8 +49,7 @@ for var in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD DAT
     sync_env "$var"
 done
 
-echo "→ Forcing valid APP_KEY generation..."
-php artisan key:generate --force
+if \! grep -Eq '\^APP_KEY=base64:[A-Za-z0-9+/=]{44}\
 
 if [ -n "$DB_HOST" ] || [ -n "$DATABASE_URL" ]; then
     echo "→ Waiting for database..."
@@ -74,6 +73,39 @@ php artisan cache:clear 2>/dev/null || true
 
 echo "→ Starting service..."
 exec "$@"
+
+
+
+
+
+ .env; then
+    echo "→ Generating valid APP_KEY (provided key is missing or invalid length)..."
+    php artisan key:generate --force
+fi
+
+if [ -n "$DB_HOST" ] || [ -n "$DATABASE_URL" ]; then
+    echo "→ Waiting for database..."
+    sleep 5
+
+    echo "→ Running migrations..."
+    php artisan migrate --force -v
+
+    if [ "$SEED_DATABASE" = "true" ]; then
+        echo "→ Seeding database..."
+        php artisan db:seed --force || true
+    fi
+else
+    echo "→ No database configured — skipping migrations."
+fi
+
+echo "→ Clearing caches..."
+php artisan config:clear
+php artisan route:clear
+php artisan cache:clear 2>/dev/null || true
+
+echo "→ Starting service..."
+exec "$@"
+
 
 
 
