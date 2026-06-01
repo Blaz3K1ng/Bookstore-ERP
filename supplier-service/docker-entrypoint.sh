@@ -56,7 +56,7 @@ fi
 
 if [ -n "$DB_HOST" ] || [ -n "$DATABASE_URL" ]; then
     echo "→ Waiting for database..."
-    sleep 5
+    sleep $(( (RANDOM % 15) + 5 ))
 
     echo "→ Running migrations..."
     php artisan migrate --force -v
