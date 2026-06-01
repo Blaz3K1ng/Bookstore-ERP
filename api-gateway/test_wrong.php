@@ -1,0 +1,17 @@
+<?php
+$data = json_encode(['email' => 'admin@pageturn.com', 'password' => 'password1234']);
+$opts = [
+    'http' => [
+        'method' => 'POST',
+        'header' => "Content-Type: application/json\r\nAccept: application/json\r\n",
+        'content' => $data,
+        'ignore_errors' => true
+    ],
+    'ssl' => [
+        'verify_peer' => false,
+        'verify_peer_name' => false
+    ]
+];
+$context = stream_context_create($opts);
+$result = file_get_contents('https://bookstore-erp.onrender.com/api/v1/auth/login', false, $context);
+echo "Response:\n$result\n";

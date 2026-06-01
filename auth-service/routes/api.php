@@ -6,6 +6,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('health', HealthController::class);
 
+Route::get('debug', function() {
+    try {
+        return response()->json(['users' => \App\Models\User::all()]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()]);
+    }
+});
+
 Route::prefix('v1/auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login',    [AuthController::class, 'login']);
