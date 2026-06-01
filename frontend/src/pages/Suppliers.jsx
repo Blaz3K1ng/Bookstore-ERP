@@ -120,8 +120,8 @@ export default function Suppliers() {
     setError('');
     try {
       const [sRes, poRes] = await Promise.all([api.getSuppliers(), api.getPurchaseOrders()]);
-      setSuppliers(sRes.data || sRes);
-      setPurchaseOrders(poRes.data || poRes);
+      setSuppliers(sRes.data?.data || sRes.data || sRes || []);
+      setPurchaseOrders(poRes.data?.data || poRes.data || poRes || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -201,10 +201,10 @@ export default function Suppliers() {
               <tr key={s.id}>
                 <td><strong>{s.name}</strong></td>
                 <td>{s.contact_name || '—'}</td>
-                <td>{s.email || '—'}</td>
+                <td>{s.contact_email || s.email || '—'}</td>
                 <td>{s.phone || '—'}</td>
-                <td><span className={`badge ${s.is_active ? 'badge-green' : 'badge-grey'}`}>
-                  {s.is_active ? 'Active' : 'Inactive'}
+                <td><span className={`badge ${(s.is_active || s.status === 'active') ? 'badge-green' : 'badge-grey'}`}>
+                  {(s.is_active || s.status === 'active') ? 'Active' : 'Inactive'}
                 </span></td>
               </tr>
             ))}
