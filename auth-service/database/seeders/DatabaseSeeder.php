@@ -11,7 +11,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $users = [
-            ['name' => 'Super Admin',      'email' => 'admin@pageturn.com',       'role' => 'super_admin',     'password' => 'password123'],
+            ['name' => 'Super Admin',      'email' => 'admin@pageturn.com',       'role' => 'admin',     'password' => 'password123'],
             ['name' => 'Finance Admin',    'email' => 'finance@pageturn.com',     'role' => 'finance_admin',   'password' => 'password123'],
             ['name' => 'Inventory Admin',  'email' => 'inventory@pageturn.com',   'role' => 'inventory_admin', 'password' => 'password123'],
             ['name' => 'Catalog Admin',    'email' => 'catalog@pageturn.com',     'role' => 'catalog_admin',   'password' => 'password123'],
