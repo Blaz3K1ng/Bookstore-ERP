@@ -32,30 +32,38 @@ export default function LandingPage() {
     loadBooks(searchTerm);
   };
 
-  const handleCheckout = async () => {
-    if (!user) {
-      navigate('/register');
-      return;
-    }
+  const [checkoutModal, setCheckoutModal] = useState(false);
+  const [checkoutForm, setCheckoutForm] = useState({ shipping_address: '', payment_method: 'cash' });
+
+  const handleCheckout = () => {
+    if (!user) { navigate('/login'); return; }
+    setCheckoutModal(true);
+  };
+
+  const handlePlaceOrder = async (e) => {
+    e.preventDefault();
     setCheckoutLoading(true);
     try {
-      const items = cart.map(item => ({
-        book_id: item.id,
-        quantity: item.quantity
-      }));
+      const items = cart.map(item => ({ book_id: item.id, quantity: item.quantity }));
       await api.createOrder({
-        customer_id: user.id,
-        items: items
+        customer_id:      user.id,
+        customer_name:    user.name,
+        shipping_address: checkoutForm.shipping_address,
+        payment_method:   checkoutForm.payment_method,
+        items,
       });
-      alert('Order placed successfully! Check your dashboard.');
+      alert('Order placed successfully! Check your profile for order history.');
       clearCart();
       setIsCartOpen(false);
+      setCheckoutModal(false);
+      setCheckoutForm({ shipping_address: '', payment_method: 'cash' });
     } catch (err) {
       alert(err.message || 'Checkout failed');
     } finally {
       setCheckoutLoading(false);
     }
   };
+
 
   const genres = ['All', ...new Set(books.map(b => b.genre).filter(Boolean))];
 
@@ -244,6 +252,44 @@ export default function LandingPage() {
           )}
         </div>
       </div>
+      {/* Checkout Modal */}
+      {checkoutModal && (
+        <div className="modal-overlay" onClick={() => setCheckoutModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+            <h3>Complete Your Order</h3>
+            <p style={{ color: 'var(--muted)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+              {cart.length} item(s) · Total: ₱{cartTotal.toLocaleString()}
+            </p>
+            <form onSubmit={handlePlaceOrder}>
+              <label>Shipping Address *</label>
+              <textarea
+                required
+                rows={3}
+                placeholder="Enter your full delivery address…"
+                value={checkoutForm.shipping_address}
+                onChange={e => setCheckoutForm({ ...checkoutForm, shipping_address: e.target.value })}
+              />
+              <label>Payment Method *</label>
+              <select
+                value={checkoutForm.payment_method}
+                onChange={e => setCheckoutForm({ ...checkoutForm, payment_method: e.target.value })}
+              >
+                <option value="cash">Cash</option>
+                <option value="gcash">GCash</option>
+                <option value="paymaya">PayMaya</option>
+                <option value="credit_card">Credit Card</option>
+                <option value="cod">Cash on Delivery</option>
+              </select>
+              <div className="modal-actions" style={{ marginTop: '1.25rem' }}>
+                <button type="button" className="btn-ghost" onClick={() => setCheckoutModal(false)}>Cancel</button>
+                <button type="submit" className="btn-primary" disabled={checkoutLoading}>
+                  {checkoutLoading ? 'Placing Order…' : 'Place Order'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
