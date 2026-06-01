@@ -16,6 +16,7 @@ if [ -n "$DATABASE_URL" ]; then
     export DATABASE_URL
 fi
 
+echo "LOG_CHANNEL=stderr" >> .env
 # Auto-detect DB_CONNECTION from DATABASE_URL scheme (Render provides postgres://)
 if [ -z "$DB_CONNECTION" ] && [ -n "$DATABASE_URL" ]; then
     case "$DATABASE_URL" in
@@ -77,4 +78,5 @@ php artisan cache:clear 2>/dev/null || true
 
 echo "→ Starting service..."
 exec "$@"
+
 
