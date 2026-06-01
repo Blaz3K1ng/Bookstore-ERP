@@ -44,7 +44,7 @@ for var in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD DAT
            CUSTOMER_SERVICE_URL FINANCE_SERVICE_URL \
            INTERNAL_SERVICE_TOKEN \
            RABBITMQ_HOST RABBITMQ_PORT RABBITMQ_USER RABBITMQ_PASSWORD RABBITMQ_QUEUE \
-           APP_KEY APP_ENV APP_DEBUG; do
+           APP_KEY APP_ENV APP_DEBUG LOG_CHANNEL; do
     sync_env "$var"
 done
 
@@ -77,3 +77,4 @@ php artisan cache:clear 2>/dev/null || true
 
 echo "→ Starting service..."
 exec "$@"
+

@@ -31,6 +31,8 @@ services:
         value: production
       - key: APP_DEBUG
         value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
       - key: APP_KEY
         generateValue: true
       - key: DB_CONNECTION
@@ -54,6 +56,8 @@ services:
         value: production
       - key: APP_DEBUG
         value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
       - key: APP_KEY
         generateValue: true
       - key: DB_CONNECTION
@@ -79,6 +83,8 @@ services:
         value: production
       - key: APP_DEBUG
         value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
       - key: APP_KEY
         generateValue: true
       - key: DB_CONNECTION
@@ -104,6 +110,8 @@ services:
         value: production
       - key: APP_DEBUG
         value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
       - key: APP_KEY
         generateValue: true
       - key: DB_CONNECTION
@@ -143,6 +151,8 @@ services:
         value: production
       - key: APP_DEBUG
         value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
       - key: APP_KEY
         generateValue: true
       - key: DB_CONNECTION
@@ -176,6 +186,8 @@ services:
         value: production
       - key: APP_DEBUG
         value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
       - key: APP_KEY
         generateValue: true
       - key: DB_CONNECTION
@@ -203,6 +215,8 @@ services:
         value: production
       - key: APP_DEBUG
         value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
       - key: APP_KEY
         generateValue: true
       - key: AUTH_SERVICE_URL
@@ -228,6 +242,8 @@ services:
         value: production
       - key: APP_DEBUG
         value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
       - key: APP_KEY
         generateValue: true
       - key: AUTH_SERVICE_URL
@@ -254,3 +270,4 @@ services:
     envVars:
       - key: API_GATEWAY_URL
         sync: false  # https://bookstore-api-gateway.onrender.com
+
