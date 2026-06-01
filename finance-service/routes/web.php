@@ -16,3 +16,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Health check alias — Render uses /health by default when no healthCheckPath is set
+Route::get('/health', \App\Http\Controllers\HealthController::class);
