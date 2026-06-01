@@ -14,6 +14,15 @@ Route::get('debug', function() {
     }
 });
 
+Route::post('debug-login', function(\Illuminate\Http\Request $request) {
+    try {
+        $token = \Tymon\JWTAuth\Facades\JWTAuth::attempt($request->only('email', 'password'));
+        return response()->json(['token' => $token]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+    }
+});
+
 Route::prefix('v1/auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login',    [AuthController::class, 'login']);
