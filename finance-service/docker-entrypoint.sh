@@ -49,11 +49,9 @@ for var in DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD DAT
     sync_env "$var"
 done
 
-# Fail fast if APP_KEY is missing (Laravel will crash anyway; make it obvious in logs)
-app_key=$(grep '^APP_KEY=' .env 2>/dev/null | head -n 1 | cut -d= -f2-)
-if [ -z "$app_key" ]; then
-    echo "ERROR: APP_KEY is not set. Add APP_KEY to the service environment variables."
-    exit 1
+if ! grep -q '^APP_KEY=base64:' .env; then
+    echo "? Generating valid APP_KEY..."
+    php artisan key:generate --force
 fi
 
 if [ -n "$DB_HOST" ] || [ -n "$DATABASE_URL" ]; then
@@ -78,5 +76,6 @@ php artisan cache:clear 2>/dev/null || true
 
 echo "→ Starting service..."
 exec "$@"
+
 
 
