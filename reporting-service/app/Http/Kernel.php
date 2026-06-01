@@ -14,6 +14,10 @@ class Kernel extends HttpKernel
     ];
 
     protected $middlewareGroups = [
+        'web' => [
+            // No web middleware needed for this microservice, but group must exist.
+        ],
+
         'api' => [
             \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
