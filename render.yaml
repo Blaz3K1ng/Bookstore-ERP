@@ -1,53 +1,22 @@
 # Render Deployment Blueprint — PageCraft Bookstore ERP
 #
-# BEFORE DEPLOYING:
-#   1. Sign up at https://cloudamqp.com (free "Little Lemur" plan) and create an instance.
-#      You will need: RABBITMQ_HOST, RABBITMQ_USER, RABBITMQ_PASSWORD from the instance details.
+# DATABASE SETUP (free, no card required):
+#   1. Go to https://neon.tech and sign in with GitHub (free, no card needed).
+#   2. Create ONE project — Neon gives you multiple databases inside one project.
+#   3. Create 6 databases inside that project:
+#      auth_db, inventory_db, orders_db, customers_db, finance_db, supplier_db
+#   4. For each database, copy its connection string (starts with postgres://...)
+#   5. Paste each connection string into the matching DATABASE_URL below.
 #
-# DEPLOY ORDER (Render deploys databases first automatically):
-#   1. Push this repo and connect it in the Render dashboard → "New Blueprint Instance".
-#   2. After backend services are live, copy each service's .onrender.com URL into the
-#      *_SERVICE_URL and API_GATEWAY_URL env vars marked with sync: false below.
-#      Navigate to each service → Environment tab → update the values → redeploy.
-#   3. For shared secrets (JWT_SECRET, INTERNAL_SERVICE_TOKEN) set the SAME value
-#      in every service that references them.
+# RABBITMQ (for order events):
+#   1. Go to https://cloudamqp.com → free "Little Lemur" plan, no card needed.
+#   2. Copy RABBITMQ_HOST, RABBITMQ_USER, RABBITMQ_PASSWORD from instance details.
 #
-# FREE TIER NOTES:
-#   - PostgreSQL databases expire after 90 days on the free plan.
-#   - Web services spin down after 15 min of inactivity (first request is slow).
-#   - Background workers (finance-consumer) are available on paid plans only.
-#     On the free plan, skip it and invoices won't auto-generate from orders.
-
-databases:
-  - name: bookstore-auth-db
-    plan: free
-    databaseName: auth_db
-    user: bookstore
-
-  - name: bookstore-inventory-db
-    plan: free
-    databaseName: inventory_db
-    user: bookstore
-
-  - name: bookstore-orders-db
-    plan: free
-    databaseName: orders_db
-    user: bookstore
-
-  - name: bookstore-customers-db
-    plan: free
-    databaseName: customers_db
-    user: bookstore
-
-  - name: bookstore-finance-db
-    plan: free
-    databaseName: finance_db
-    user: bookstore
-
-  - name: bookstore-supplier-db
-    plan: free
-    databaseName: supplier_db
-    user: bookstore
+# DEPLOY ORDER:
+#   1. Push this file, connect repo in Render → "New Blueprint Instance".
+#   2. Fill in all sync: false values before deploying (especially DATABASE_URL).
+#   3. After all services are live, fill in the *_SERVICE_URL env vars and redeploy.
+#   4. Use the SAME JWT_SECRET and INTERNAL_SERVICE_TOKEN across all services.
 
 services:
   # ── Auth Service ────────────────────────────────────────────────────────────
@@ -67,11 +36,9 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DATABASE_URL
-        fromDatabase:
-          name: bookstore-auth-db
-          property: connectionString
+        sync: false  # Neon connection string for auth_db
       - key: JWT_SECRET
-        sync: false  # Generate a strong secret: openssl rand -hex 32
+        sync: false  # Generate: openssl rand -hex 32
       - key: SEED_DATABASE
         value: "true"
 
@@ -92,11 +59,9 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DATABASE_URL
-        fromDatabase:
-          name: bookstore-inventory-db
-          property: connectionString
+        sync: false  # Neon connection string for inventory_db
       - key: AUTH_SERVICE_URL
-        sync: false  # e.g. https://bookstore-auth.onrender.com
+        sync: false  # https://bookstore-auth.onrender.com
       - key: INTERNAL_SERVICE_TOKEN
         sync: false  # Same value across all services
       - key: SEED_DATABASE
@@ -119,9 +84,7 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DATABASE_URL
-        fromDatabase:
-          name: bookstore-customers-db
-          property: connectionString
+        sync: false  # Neon connection string for customers_db
       - key: AUTH_SERVICE_URL
         sync: false
       - key: INTERNAL_SERVICE_TOKEN
@@ -146,19 +109,17 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DATABASE_URL
-        fromDatabase:
-          name: bookstore-orders-db
-          property: connectionString
+        sync: false  # Neon connection string for orders_db
       - key: AUTH_SERVICE_URL
         sync: false
       - key: INVENTORY_SERVICE_URL
-        sync: false  # e.g. https://bookstore-inventory.onrender.com
+        sync: false
       - key: CUSTOMER_SERVICE_URL
-        sync: false  # e.g. https://bookstore-customer.onrender.com
+        sync: false
       - key: INTERNAL_SERVICE_TOKEN
         sync: false
       - key: RABBITMQ_HOST
-        sync: false  # From CloudAMQP instance details
+        sync: false  # From CloudAMQP
       - key: RABBITMQ_PORT
         value: "5672"
       - key: RABBITMQ_USER
@@ -187,9 +148,7 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DATABASE_URL
-        fromDatabase:
-          name: bookstore-finance-db
-          property: connectionString
+        sync: false  # Neon connection string for finance_db
       - key: AUTH_SERVICE_URL
         sync: false
       - key: INTERNAL_SERVICE_TOKEN
@@ -222,9 +181,7 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DATABASE_URL
-        fromDatabase:
-          name: bookstore-supplier-db
-          property: connectionString
+        sync: false  # Neon connection string for supplier_db
       - key: AUTH_SERVICE_URL
         sync: false
       - key: INVENTORY_SERVICE_URL
@@ -274,19 +231,19 @@ services:
       - key: APP_KEY
         generateValue: true
       - key: AUTH_SERVICE_URL
-        sync: false  # https://bookstore-auth.onrender.com
+        sync: false
       - key: INVENTORY_SERVICE_URL
-        sync: false  # https://bookstore-inventory.onrender.com
+        sync: false
       - key: ORDER_SERVICE_URL
-        sync: false  # https://bookstore-order.onrender.com
+        sync: false
       - key: CUSTOMER_SERVICE_URL
-        sync: false  # https://bookstore-customer.onrender.com
+        sync: false
       - key: FINANCE_SERVICE_URL
-        sync: false  # https://bookstore-finance.onrender.com
+        sync: false
       - key: SUPPLIER_SERVICE_URL
-        sync: false  # https://bookstore-supplier.onrender.com
+        sync: false
       - key: REPORTING_SERVICE_URL
-        sync: false  # https://bookstore-reporting.onrender.com
+        sync: false
 
   # ── Frontend ─────────────────────────────────────────────────────────────────
   - type: web
