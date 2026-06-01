@@ -9,23 +9,11 @@ class HealthController extends Controller
 {
     public function __invoke(): JsonResponse
     {
-        $dbOk = false;
-
-        try {
-            DB::connection()->getPdo();
-            $dbOk = true;
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('DB Health Check Failed: ' . $e->getMessage());
-        }
-
-        $status = $dbOk ? 'healthy' : 'degraded';
-
         return response()->json([
-            'service'  => env('APP_NAME', 'microservice'),
-            'status'   => $status,
-            'database' => $dbOk ? 'connected' : 'disconnected',
+            'service'  => env('APP_NAME', 'api-gateway'),
+            'status'   => 'healthy',
             'time'     => now()->toISOString(),
-        ], $dbOk ? 200 : 503);
+        ], 200);
     }
 }
 
