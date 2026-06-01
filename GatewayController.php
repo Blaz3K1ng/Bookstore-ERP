@@ -27,6 +27,8 @@ class GatewayController extends Controller
             'order'     => env('ORDER_SERVICE_URL'),
             'customer'  => env('CUSTOMER_SERVICE_URL'),
             'finance'   => env('FINANCE_SERVICE_URL'),
+            'supplier'  => env('SUPPLIER_SERVICE_URL'),
+            'reporting' => env('REPORTING_SERVICE_URL'),
         ];
     }
 

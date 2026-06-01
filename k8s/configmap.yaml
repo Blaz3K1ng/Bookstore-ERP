@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bookstore-config
+  namespace: bookstore
+data:
+  APP_ENV: "production"
+  APP_DEBUG: "false"
+  DB_CONNECTION: "pgsql"
+  DB_PORT: "5432"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_QUEUE: "order.created"
+  NOTIFICATION_QUEUE: "order.notifications"
+  SEED_DATABASE: "true"
+  # Internal service URLs (cluster-local DNS)
+  AUTH_SERVICE_URL: "http://auth-service.bookstore.svc.cluster.local"
+  INVENTORY_SERVICE_URL: "http://inventory-service.bookstore.svc.cluster.local"
+  ORDER_SERVICE_URL: "http://order-service.bookstore.svc.cluster.local"
+  CUSTOMER_SERVICE_URL: "http://customer-service.bookstore.svc.cluster.local"
+  FINANCE_SERVICE_URL: "http://finance-service.bookstore.svc.cluster.local"
+  SUPPLIER_SERVICE_URL: "http://supplier-service.bookstore.svc.cluster.local"
+  REPORTING_SERVICE_URL: "http://reporting-service.bookstore.svc.cluster.local"

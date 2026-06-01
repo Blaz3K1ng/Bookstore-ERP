@@ -23,13 +23,8 @@ Thumbs.db
 *.log
 .phpunit.result.cache
 
-# Service directories (scaffolded by setup.sh)
-api-gateway/
-auth-service/
-inventory-service/
-order-service/
-customer-service/
-finance-service/
+# Service directories are committed so Render/CI can build Docker images.
+# Each service has its own .gitignore that excludes .env, vendor/, etc.
 
 # Legacy flat source files (migrated to service-files/)
 /mnt/

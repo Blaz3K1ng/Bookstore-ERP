@@ -1,0 +1,26 @@
+<?php
+
+use App\Http\Controllers\BookController;
+use App\Http\Controllers\HealthController;
+use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\VerifyJwtToken;
+use App\Http\Middleware\VerifyServiceAuth;
+use Illuminate\Support\Facades\Route;
+
+Route::get('health', HealthController::class);
+
+// Service-to-service stock operations (Order Service)
+Route::prefix('v1')->middleware(VerifyServiceAuth::class)->group(function () {
+    Route::get('books/{id}/stock',         [BookController::class, 'checkStock']);
+    Route::patch('books/{id}/stock/deduct',  [BookController::class, 'deductStock']);
+    Route::patch('books/{id}/stock/restore', [BookController::class, 'restoreStock']);
+});
+
+// User-facing endpoints
+Route::prefix('v1')->middleware(VerifyJwtToken::class)->group(function () {
+    Route::get('stock/alerts', [BookController::class, 'lowStockAlerts'])
+         ->middleware('role:admin,warehouse_manager,sales_agent');
+
+    Route::apiResource('books', BookController::class)
+         ->middleware('role:admin,warehouse_manager,sales_agent,customer');
+});

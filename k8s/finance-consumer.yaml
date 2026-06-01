@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: finance-consumer
+  namespace: bookstore
+  labels:
+    app: finance-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: finance-consumer
+  template:
+    metadata:
+      labels:
+        app: finance-consumer
+    spec:
+      containers:
+        - name: finance-consumer
+          image: ghcr.io/OWNER/bookstore-finance:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: bookstore-config
+            - secretRef:
+                name: bookstore-secrets
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: finance-db-secret
+                  key: DATABASE_URL
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

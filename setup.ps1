@@ -2,7 +2,7 @@
 $ErrorActionPreference = "Stop"
 Write-Host "=== PageCraft Bookstore ERP Setup ===" -ForegroundColor Green
 
-$services = @("api-gateway","auth-service","inventory-service","order-service","customer-service","finance-service")
+$services = @("api-gateway","auth-service","inventory-service","order-service","customer-service","finance-service","supplier-service","reporting-service")
 
 foreach ($svc in $services) {
     if (Test-Path "$svc\vendor") {
@@ -29,7 +29,7 @@ Push-Location finance-service
 composer require php-amqplib/php-amqplib --quiet --no-interaction
 Pop-Location
 
-foreach ($svc in @("inventory-service","customer-service","api-gateway")) {
+foreach ($svc in @("inventory-service","customer-service","api-gateway","supplier-service")) {
     Write-Host "[INFO] Installing guzzle for $svc ..."
     Push-Location $svc
     composer require guzzlehttp/guzzle --quiet --no-interaction
@@ -82,6 +82,32 @@ Copy-Item service-files/finance-service/ConsumeOrderEvents.php finance-service/a
 # Gateway
 Copy-Item service-files/api-gateway/routes/api.php api-gateway/routes/api.php -Force
 Copy-Item service-files/api-gateway/GatewayController.php api-gateway/app/Http/Controllers/GatewayController.php -Force
+
+# Supplier Service
+New-Item -ItemType Directory -Force -Path supplier-service/app/Http/Controllers | Out-Null
+New-Item -ItemType Directory -Force -Path supplier-service/app/Http/Middleware | Out-Null
+New-Item -ItemType Directory -Force -Path supplier-service/app/Models | Out-Null
+New-Item -ItemType Directory -Force -Path supplier-service/app/Services | Out-Null
+New-Item -ItemType Directory -Force -Path supplier-service/database/migrations | Out-Null
+New-Item -ItemType Directory -Force -Path supplier-service/database/seeders | Out-Null
+Copy-Item service-files/supplier-service/routes/api.php supplier-service/routes/api.php -Force
+Copy-Item service-files/supplier-service/app/Http/Controllers/* supplier-service/app/Http/Controllers/ -Force
+Copy-Item service-files/supplier-service/app/Http/Middleware/* supplier-service/app/Http/Middleware/ -Force
+Copy-Item service-files/supplier-service/app/Http/Kernel.php supplier-service/app/Http/Kernel.php -Force
+Copy-Item service-files/supplier-service/app/Models/* supplier-service/app/Models/ -Force
+Copy-Item service-files/supplier-service/app/Services/* supplier-service/app/Services/ -Force
+Copy-Item service-files/supplier-service/database/migrations/* supplier-service/database/migrations/ -Force
+Copy-Item service-files/supplier-service/database/seeders/* supplier-service/database/seeders/ -Force
+
+# Reporting Service
+New-Item -ItemType Directory -Force -Path reporting-service/app/Http/Controllers | Out-Null
+New-Item -ItemType Directory -Force -Path reporting-service/app/Http/Middleware | Out-Null
+New-Item -ItemType Directory -Force -Path reporting-service/app/Services | Out-Null
+Copy-Item service-files/reporting-service/routes/api.php reporting-service/routes/api.php -Force
+Copy-Item service-files/reporting-service/app/Http/Controllers/* reporting-service/app/Http/Controllers/ -Force
+Copy-Item service-files/reporting-service/app/Http/Middleware/* reporting-service/app/Http/Middleware/ -Force
+Copy-Item service-files/reporting-service/app/Http/Kernel.php reporting-service/app/Http/Kernel.php -Force
+Copy-Item service-files/reporting-service/app/Services/* reporting-service/app/Services/ -Force
 
 foreach ($svc in $services) {
     Copy-Item Dockerfile "$svc/Dockerfile" -Force

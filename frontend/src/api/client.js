@@ -48,4 +48,26 @@ export const api = {
   updateInvoiceStatus: (id, status) =>
     request(`/invoices/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   getRevenue: () => request('/reports/revenue'),
+  getMonthlyRevenue: () => request('/reports/monthly-revenue'),
+
+  // Supplier Service
+  getSuppliers: () => request('/suppliers'),
+  createSupplier: (payload) =>
+    request('/suppliers', { method: 'POST', body: JSON.stringify(payload) }),
+  updateSupplier: (id, payload) =>
+    request(`/suppliers/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  deleteSupplier: (id) => request(`/suppliers/${id}`, { method: 'DELETE' }),
+
+  getPurchaseOrders: (params = '') => request(`/purchase-orders${params ? '?' + params : ''}`),
+  createPurchaseOrder: (payload) =>
+    request('/purchase-orders', { method: 'POST', body: JSON.stringify(payload) }),
+  receivePurchaseOrder: (id) =>
+    request(`/purchase-orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'received' }) }),
+  cancelPurchaseOrder: (id) =>
+    request(`/purchase-orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'cancelled' }) }),
+
+  // Reporting Service
+  getReportDashboard: () => request('/reports/dashboard'),
+  getTopBooks: () => request('/reports/top-books'),
+  getLowStock: () => request('/reports/low-stock'),
 };

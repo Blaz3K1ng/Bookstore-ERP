@@ -7,6 +7,8 @@ const nav = [
   { to: '/orders', label: 'Orders', icon: '🛒' },
   { to: '/customers', label: 'Customers', icon: '👥' },
   { to: '/invoices', label: 'Finance', icon: '💰' },
+  { to: '/suppliers', label: 'Suppliers', icon: '🏭' },
+  { to: '/reports', label: 'Reports', icon: '📊' },
 ];
 
 export default function Layout() {

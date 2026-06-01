@@ -1,0 +1,362 @@
+# Render Deployment Blueprint — PageCraft Bookstore ERP
+#
+# BEFORE DEPLOYING:
+#   1. Sign up at https://cloudamqp.com (free "Little Lemur" plan) and create an instance.
+#      You will need: RABBITMQ_HOST, RABBITMQ_USER, RABBITMQ_PASSWORD from the instance details.
+#
+# DEPLOY ORDER (Render deploys databases first automatically):
+#   1. Push this repo and connect it in the Render dashboard → "New Blueprint Instance".
+#   2. After backend services are live, copy each service's .onrender.com URL into the
+#      *_SERVICE_URL and API_GATEWAY_URL env vars marked with sync: false below.
+#      Navigate to each service → Environment tab → update the values → redeploy.
+#   3. For shared secrets (JWT_SECRET, INTERNAL_SERVICE_TOKEN) set the SAME value
+#      in every service that references them.
+#
+# FREE TIER NOTES:
+#   - PostgreSQL databases expire after 90 days on the free plan.
+#   - Web services spin down after 15 min of inactivity (first request is slow).
+#   - Background workers (finance-consumer) are available on paid plans only.
+#     On the free plan, skip it and invoices won't auto-generate from orders.
+
+databases:
+  - name: bookstore-auth-db
+    plan: free
+    databaseName: auth_db
+    user: bookstore
+
+  - name: bookstore-inventory-db
+    plan: free
+    databaseName: inventory_db
+    user: bookstore
+
+  - name: bookstore-orders-db
+    plan: free
+    databaseName: orders_db
+    user: bookstore
+
+  - name: bookstore-customers-db
+    plan: free
+    databaseName: customers_db
+    user: bookstore
+
+  - name: bookstore-finance-db
+    plan: free
+    databaseName: finance_db
+    user: bookstore
+
+  - name: bookstore-supplier-db
+    plan: free
+    databaseName: supplier_db
+    user: bookstore
+
+services:
+  # ── Auth Service ────────────────────────────────────────────────────────────
+  - type: web
+    name: bookstore-auth
+    runtime: docker
+    dockerfilePath: ./auth-service/Dockerfile
+    dockerContext: ./auth-service
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bookstore-auth-db
+          property: connectionString
+      - key: JWT_SECRET
+        sync: false  # Generate a strong secret: openssl rand -hex 32
+      - key: SEED_DATABASE
+        value: "true"
+
+  # ── Inventory Service ────────────────────────────────────────────────────────
+  - type: web
+    name: bookstore-inventory
+    runtime: docker
+    dockerfilePath: ./inventory-service/Dockerfile
+    dockerContext: ./inventory-service
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bookstore-inventory-db
+          property: connectionString
+      - key: AUTH_SERVICE_URL
+        sync: false  # e.g. https://bookstore-auth.onrender.com
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false  # Same value across all services
+      - key: SEED_DATABASE
+        value: "true"
+
+  # ── Customer Service ─────────────────────────────────────────────────────────
+  - type: web
+    name: bookstore-customer
+    runtime: docker
+    dockerfilePath: ./customer-service/Dockerfile
+    dockerContext: ./customer-service
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bookstore-customers-db
+          property: connectionString
+      - key: AUTH_SERVICE_URL
+        sync: false
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false
+      - key: SEED_DATABASE
+        value: "true"
+
+  # ── Order Service ────────────────────────────────────────────────────────────
+  - type: web
+    name: bookstore-order
+    runtime: docker
+    dockerfilePath: ./order-service/Dockerfile
+    dockerContext: ./order-service
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bookstore-orders-db
+          property: connectionString
+      - key: AUTH_SERVICE_URL
+        sync: false
+      - key: INVENTORY_SERVICE_URL
+        sync: false  # e.g. https://bookstore-inventory.onrender.com
+      - key: CUSTOMER_SERVICE_URL
+        sync: false  # e.g. https://bookstore-customer.onrender.com
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false
+      - key: RABBITMQ_HOST
+        sync: false  # From CloudAMQP instance details
+      - key: RABBITMQ_PORT
+        value: "5672"
+      - key: RABBITMQ_USER
+        sync: false
+      - key: RABBITMQ_PASSWORD
+        sync: false
+      - key: RABBITMQ_QUEUE
+        value: order.created
+      - key: NOTIFICATION_QUEUE
+        value: order.notifications
+
+  # ── Finance Service ──────────────────────────────────────────────────────────
+  - type: web
+    name: bookstore-finance
+    runtime: docker
+    dockerfilePath: ./finance-service/Dockerfile
+    dockerContext: ./finance-service
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bookstore-finance-db
+          property: connectionString
+      - key: AUTH_SERVICE_URL
+        sync: false
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false
+      - key: RABBITMQ_HOST
+        sync: false
+      - key: RABBITMQ_PORT
+        value: "5672"
+      - key: RABBITMQ_USER
+        sync: false
+      - key: RABBITMQ_PASSWORD
+        sync: false
+      - key: RABBITMQ_QUEUE
+        value: order.created
+
+  # ── Finance Consumer (RabbitMQ worker) ───────────────────────────────────────
+  # NOTE: Background workers require a paid Render plan.
+  # On the free plan, skip this and invoices won't auto-generate from orders.
+  - type: worker
+    name: bookstore-finance-consumer
+    runtime: docker
+    dockerfilePath: ./finance-service/Dockerfile
+    dockerContext: ./finance-service
+    startCommand: php artisan consume:orders
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bookstore-finance-db
+          property: connectionString
+      - key: RABBITMQ_HOST
+        sync: false
+      - key: RABBITMQ_PORT
+        value: "5672"
+      - key: RABBITMQ_USER
+        sync: false
+      - key: RABBITMQ_PASSWORD
+        sync: false
+      - key: RABBITMQ_QUEUE
+        value: order.created
+
+  # ── Supplier Service ─────────────────────────────────────────────────────────
+  - type: web
+    name: bookstore-supplier
+    runtime: docker
+    dockerfilePath: ./supplier-service/Dockerfile
+    dockerContext: ./supplier-service
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bookstore-supplier-db
+          property: connectionString
+      - key: AUTH_SERVICE_URL
+        sync: false
+      - key: INVENTORY_SERVICE_URL
+        sync: false
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false
+      - key: SEED_DATABASE
+        value: "true"
+
+  # ── Reporting Service ────────────────────────────────────────────────────────
+  - type: web
+    name: bookstore-reporting
+    runtime: docker
+    dockerfilePath: ./reporting-service/Dockerfile
+    dockerContext: ./reporting-service
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: AUTH_SERVICE_URL
+        sync: false
+      - key: FINANCE_SERVICE_URL
+        sync: false
+      - key: INVENTORY_SERVICE_URL
+        sync: false
+      - key: ORDER_SERVICE_URL
+        sync: false
+      - key: INTERNAL_SERVICE_TOKEN
+        sync: false
+
+  # ── Notification Service (Node.js) ───────────────────────────────────────────
+  # NOTE: Background workers require a paid Render plan.
+  # On the free plan, deploy as a web service (add a health endpoint or use PORT).
+  - type: worker
+    name: bookstore-notification
+    runtime: docker
+    dockerfilePath: ./notification-service/Dockerfile
+    dockerContext: ./notification-service
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RABBITMQ_HOST
+        sync: false
+      - key: RABBITMQ_PORT
+        value: "5672"
+      - key: RABBITMQ_USER
+        sync: false
+      - key: RABBITMQ_PASSWORD
+        sync: false
+      - key: NOTIFICATION_QUEUE
+        value: order.notifications
+      - key: SMTP_HOST
+        sync: false  # Optional — leave blank to disable email
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        value: notifications@pagecraft.ph
+
+  # ── API Gateway ──────────────────────────────────────────────────────────────
+  - type: web
+    name: bookstore-api-gateway
+    runtime: docker
+    dockerfilePath: ./api-gateway/Dockerfile
+    dockerContext: ./api-gateway
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: AUTH_SERVICE_URL
+        sync: false  # https://bookstore-auth.onrender.com
+      - key: INVENTORY_SERVICE_URL
+        sync: false  # https://bookstore-inventory.onrender.com
+      - key: ORDER_SERVICE_URL
+        sync: false  # https://bookstore-order.onrender.com
+      - key: CUSTOMER_SERVICE_URL
+        sync: false  # https://bookstore-customer.onrender.com
+      - key: FINANCE_SERVICE_URL
+        sync: false  # https://bookstore-finance.onrender.com
+      - key: SUPPLIER_SERVICE_URL
+        sync: false  # https://bookstore-supplier.onrender.com
+      - key: REPORTING_SERVICE_URL
+        sync: false  # https://bookstore-reporting.onrender.com
+
+  # ── Frontend ─────────────────────────────────────────────────────────────────
+  - type: web
+    name: bookstore-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: API_GATEWAY_URL
+        sync: false  # https://bookstore-api-gateway.onrender.com

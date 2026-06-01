@@ -12,6 +12,8 @@ services:
       ORDER_SERVICE_URL: http://order-service:8000
       CUSTOMER_SERVICE_URL: http://customer-service:8000
       FINANCE_SERVICE_URL: http://finance-service:8000
+      SUPPLIER_SERVICE_URL: http://supplier-service:8000
+      REPORTING_SERVICE_URL: http://reporting-service:8000
       APP_KEY: base64:YWRtaW5nYXRld2F5a2V5Zm9yZGV2ZWxvcG1lbnQ=
     depends_on:
       - auth-service
@@ -19,6 +21,8 @@ services:
       - order-service
       - customer-service
       - finance-service
+      - supplier-service
+      - reporting-service
     networks:
       - bookstore-net
     restart: unless-stopped
@@ -110,6 +114,7 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
       RABBITMQ_QUEUE: order.created
+      NOTIFICATION_QUEUE: order.notifications
     depends_on:
       mysql-orders:
         condition: service_healthy
@@ -254,10 +259,84 @@ services:
       interval: 15s
       retries: 5
 
+  supplier-service:
+    build: ./supplier-service
+    environment:
+      APP_KEY: base64:c3VwcGxpZXJzZXJ2aWNla2V5Zm9yZGV2ZWxvcA==
+      DB_HOST: mysql-supplier
+      DB_DATABASE: supplier_db
+      DB_USERNAME: bookstore
+      DB_PASSWORD: secret
+      AUTH_SERVICE_URL: http://auth-service:8000
+      INVENTORY_SERVICE_URL: http://inventory-service:8000
+      INTERNAL_SERVICE_TOKEN: pagecraft-internal-dev-token
+      SEED_DATABASE: "true"
+    depends_on:
+      mysql-supplier:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      inventory-service:
+        condition: service_started
+    networks:
+      - bookstore-net
+    restart: unless-stopped
+
+  mysql-supplier:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: supplier_db
+      MYSQL_USER: bookstore
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: rootsecret
+    volumes:
+      - mysql_supplier_data:/var/lib/mysql
+    networks:
+      - bookstore-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+
+  reporting-service:
+    build: ./reporting-service
+    environment:
+      APP_KEY: base64:cmVwb3J0aW5nc2VydmljZWtleWZvcmRldmVsb3A=
+      AUTH_SERVICE_URL: http://auth-service:8000
+      FINANCE_SERVICE_URL: http://finance-service:8000
+      INVENTORY_SERVICE_URL: http://inventory-service:8000
+      ORDER_SERVICE_URL: http://order-service:8000
+      INTERNAL_SERVICE_TOKEN: pagecraft-internal-dev-token
+    depends_on:
+      - auth-service
+      - finance-service
+      - inventory-service
+      - order-service
+    networks:
+      - bookstore-net
+    restart: unless-stopped
+
+  notification-service:
+    build: ./notification-service
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      NOTIFICATION_QUEUE: order.notifications
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - bookstore-net
+    restart: unless-stopped
+
   frontend:
     build: ./frontend
     ports:
       - "3000:80"
+    environment:
+      API_GATEWAY_URL: http://api-gateway:8000
     depends_on:
       - api-gateway
     networks:
@@ -274,4 +353,5 @@ volumes:
   mysql_orders_data:
   mysql_customers_data:
   mysql_finance_data:
+  mysql_supplier_data:
   rabbitmq_data:
