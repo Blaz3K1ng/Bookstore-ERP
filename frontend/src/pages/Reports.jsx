@@ -14,16 +14,16 @@ function MetricCard({ label, value, sub }) {
 function RevenueChart({ data }) {
   if (!data || data.length === 0) return <p className="empty-text">No revenue data available.</p>;
 
-  const max = Math.max(...data.map((d) => Number(d.total || 0)), 1);
+  const max = Math.max(...data.map((d) => Number(d.revenue || d.total || 0)), 1);
 
   return (
     <div className="bar-chart">
       {data.slice(-12).map((row) => {
-        const pct = Math.round((Number(row.total) / max) * 100);
+        const pct = Math.round((Number(row.revenue || row.total || 0) / max) * 100);
         return (
           <div key={row.month} className="bar-group">
             <div className="bar-track">
-              <div className="bar-fill" style={{ height: `${pct}%` }} title={`₱${Number(row.total).toLocaleString()}`} />
+              <div className="bar-fill" style={{ height: `${pct}%` }} title={`₱${Number(row.revenue || row.total || 0).toLocaleString()}`} />
             </div>
             <div className="bar-label">{row.month?.slice(5)}</div>
           </div>
@@ -153,7 +153,7 @@ export default function Reports() {
                 {[...monthlyRevenue].reverse().slice(0, 12).map((row) => (
                   <tr key={row.month}>
                     <td>{row.month}</td>
-                    <td>₱{Number(row.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                    <td>₱{Number(row.revenue || row.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                   </tr>
                 ))}
               </tbody>

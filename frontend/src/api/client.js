@@ -51,7 +51,7 @@ export const api = {
   updateInvoiceStatus: (id, status) =>
     request(`/invoices/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   getRevenue: () => request('/reports/revenue'),
-  getMonthlyRevenue: () => request('/reports/monthly-revenue'),
+  getMonthlyRevenue: () => request('/reports/revenue/monthly'),
 
   // Supplier Service
   getSuppliers: () => request('/suppliers'),
