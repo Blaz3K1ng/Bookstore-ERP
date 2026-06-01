@@ -12,12 +12,14 @@ Route::prefix('v1/auth')->group(function () {
     Route::post('login',    [GatewayController::class, 'handle'])->defaults('service', 'auth');
 });
 
+Route::prefix('v1')->group(function () {
+    Route::any('books/{path?}', [GatewayController::class, 'handle'])
+         ->where('path', '.*')->defaults('service', 'inventory');
+});
+
 Route::prefix('v1')->middleware(AuthenticateGateway::class)->group(function () {
     Route::any('auth/{path?}', [GatewayController::class, 'handle'])
          ->where('path', '.*')->defaults('service', 'auth');
-
-    Route::any('books/{path?}', [GatewayController::class, 'handle'])
-         ->where('path', '.*')->defaults('service', 'inventory');
 
     Route::get('stock/alerts', [GatewayController::class, 'handle'])
          ->defaults('service', 'inventory');

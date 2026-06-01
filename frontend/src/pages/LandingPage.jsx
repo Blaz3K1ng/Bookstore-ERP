@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const { addToCart, isCartOpen, setIsCartOpen, cart, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart();
+  const { addToCart, isCartOpen, setIsCartOpen, cart, updateQuantity, removeFromCart, clearCart, cartTotal, cartCount } = useCart();
 
   useEffect(() => {
     loadBooks();
@@ -25,6 +29,31 @@ export default function LandingPage() {
   const handleSearch = (e) => {
     e.preventDefault();
     loadBooks(searchTerm);
+  };
+
+  const handleCheckout = async () => {
+    if (!user) {
+      navigate('/register');
+      return;
+    }
+    setCheckoutLoading(true);
+    try {
+      const items = cart.map(item => ({
+        book_id: item.id,
+        quantity: item.quantity
+      }));
+      await api.createOrder({
+        customer_id: user.id,
+        items: items
+      });
+      alert('Order placed successfully! Check your dashboard.');
+      clearCart();
+      setIsCartOpen(false);
+    } catch (err) {
+      alert(err.message || 'Checkout failed');
+    } finally {
+      setCheckoutLoading(false);
+    }
   };
 
   // Group books by genre for "Featured" and "New Arrivals" illusion
@@ -178,8 +207,12 @@ export default function LandingPage() {
                 <span>Total:</span>
                 <span>₱{cartTotal.toLocaleString()}</span>
               </div>
-              <button className="btn-checkout" onClick={() => alert('Checkout is coming soon!')}>
-                Proceed to Checkout
+              <button 
+                className="btn-checkout" 
+                onClick={handleCheckout}
+                disabled={checkoutLoading}
+              >
+                {checkoutLoading ? 'Processing...' : 'Proceed to Checkout'}
               </button>
             </div>
           )}

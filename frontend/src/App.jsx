@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Books from './pages/Books';
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="/" element={<LandingPage />} />
             
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             
             {/* Private ERP Application */}
             <Route
